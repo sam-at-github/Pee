@@ -1,0 +1,16 @@
+---
+x:
+- "y"
+- z
+a: 1
+b: true
+c: C
+d: true
+e: 12.343400
+hash:
+  one: 1
+  two:
+    two.one: 1.100000
+    two.two: 1.200000
+  three: 3
+...
