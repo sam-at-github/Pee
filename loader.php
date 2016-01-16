@@ -2,10 +2,6 @@
 /**
  * Convenience loader. Use very optional.
  */
-
-/**
- * Simple class loader.
- */
 class MyLoader
 {
   protected $bases = [];
