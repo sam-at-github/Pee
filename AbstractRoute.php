@@ -2,6 +2,6 @@
 abstract class AbstractRoute
 {
   public abstract function accept($source);
-  public abstract function target();
+  public abstract function getTarget();
   public abstract function __toString();
 }

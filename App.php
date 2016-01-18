@@ -1,12 +1,11 @@
 <?php
-
-require_once('loader.php');
-
 /**
- * Singleton for encapsulating basic state of a HTTP request/response.
+ * Singleton for encapsulating basic global state of a web application.
+ * Contains a configuration space, the HTTP request & response singletons, and global error handling.
  */
 class App implements \ArrayAccess
 {
+  private static $instance = null;
   private $request;
   private $response;
   private $config;
@@ -17,15 +16,16 @@ class App implements \ArrayAccess
 
   /**
    * Initialize everything. App now controls the response.
+   * HttpRequest|Response are thin wrappers over \http\Env\Request|Response.
    */
-  public function __construct($config = null) {
+  private function __construct($config = null) {
     if(headers_sent()) {
       throw new \RuntimeException("Can't initialize app after headers have been sent");
     }
     $this->loadConfig($config);
     $this->initErrors([$this, "defaultErrorHandler"]);
-    $this->request =  new http\Env\Request();
-    $this->response = new http\Env\Response();
+    $this->request =  new HttpRequest();
+    $this->response = new HttpResponse();
     register_shutdown_function([$this, "send"]);
     ob_start();
   }
@@ -89,24 +89,27 @@ class App implements \ArrayAccess
    * @param $code HTTP error code.
    * @param $message HTTP error message.
    * @param $exception Exception that caused this error if any.
-   * @todo verbosity and respect display_errors
    */
   public function defaultErrorHandler($code, $message, $exception = null) {
+    ob_clean();
     $mime = $this->response->getHeader("Content-Type");
     switch($mime) {
       case "application/json": {
         print json_encode(['code' => $code, 'message' => $message]);
         break;
       }
+      case "application/phpcli" :
       default: {
-        print "<!DOCTYPE html>
-        <html>
-          <head><title>$code $message</title></head>
-          <body>
-            <h1>$message</h1>
-            <p></p>
-          </body>
-        </html>";
+        $trace = ((bool)ini_get('display_errors')) ? $exception . "" : "";
+        $output = ini_get('display_errors') == "stderr" ? STDERR : STDOUT;
+        fprintf($output, "<!DOCTYPE html>
+<html>
+  <head><title>$code $message</title></head>
+  <body>
+    <h1>$message</h1>
+    <p>$trace</p>
+  </body>
+</html>\n");
         break;
       }
     }
@@ -141,6 +144,18 @@ class App implements \ArrayAccess
   public function offsetUnset($offset) {
     return $this->config->offsetUnset($offset);
   }
-}
 
-$a = new App();
+  /**
+   * Factory for singleton App instance.
+   */
+  public static function instance($config = null) {
+    if(!isset(self::$instance)) {
+      $class = get_called_class();
+      self::$instance = new $class($config);
+    }
+    elseif(isset($config)) {
+      throw new \RuntimeException("Configuration passed, but instance already instantiated");
+    }
+    return self::$instance;
+  }
+}

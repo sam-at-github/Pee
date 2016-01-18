@@ -1,11 +1,10 @@
 <?php
-require_once '../vendor/autoload.php';
 
 /**
  * Select a view based off of a HTTP Request.
- * The first ViewRoute that accepts the current request is used. Thus order is important.
+ * The first Route that accepts the current request is used. Thus order is important.
  */
-class ViewRouter //extends AbstractRouter
+class Router //extends AbstractRouter
 {
   private $routes = [];
   private $lastRoute = null;
@@ -15,9 +14,8 @@ class ViewRouter //extends AbstractRouter
 
   /**
    * Add a route. A route is specified via an interpreted string.
-   * @param $route Mixed string describing the requests to route to $target or \ViewRoute
-   * @param $target String classname of view to load.
-   * @see ViewRoute
+   * @param $route A Route to route.
+   * @see Route
    */
   public function addRoute(AbstractRoute $route) {
     $this->routes[] = $route;
@@ -52,11 +50,11 @@ class ViewRouter //extends AbstractRouter
     $target = null;
     foreach($this->routes as $route) {
       if($route->accept($request)) {
-        $target = $route->target();
-        $this->lastRoute = $route;
+        $target = $route;
         break;
       }
     }
+    $this->lastRoute = $target;
     return $target;
   }
 

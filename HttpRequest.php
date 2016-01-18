@@ -31,16 +31,18 @@ class HttpRequest extends \http\Env\Request
 
 /**
  * Shim to override http\Header paring for accept header.
- * Parsing is different plus caches.
+ * Parsing we use is different plus this class caches the resultant.
+ * @todo make it not different.
  */
 class AcceptHeader extends \http\Header
 {
   private $params = null;
 
   /**
+   * @todo Respect those params.
    * @override
    */
-  public function getParams() {
+  public function getParams($param_sep = NULL, $arg_sep = NULL, $val_sep = NULL, $flags = NULL) {
     if(!isset($this->params)) {
       $this->params = self::parseAcceptHeader($this->value);
     }

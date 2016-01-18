@@ -1,5 +1,4 @@
 <?php
-require_once '../vendor/autoload.php';
 
 /**
  * A route to a view.
@@ -13,13 +12,15 @@ class Route extends AbstractRoute
   private $tokens = [];
 
   /**
-   * Construct ViewRoute interpreting $route string.
-   * A view route string has three components <method> <path> <accept>.
+   * Construct Route by interpreting $route string.
+   * A route string has three components <method> <path> <accept>.
    * The accept defaults to *\/*, meaning that the route will only be taken when the UA accepts *\/* - which it does by default.
    * The path may contain tokens (@token or @@token to match >1 path segment, and the wildcard (*).
    * Tokens are collected on accept and available if the route accepts a request via getTokens().
-   * Ex "GET / *\/*", "ANY / text/*", "GET /products", "GET text/json".
-   * @todo Support constuction via array. Faster.
+   * Examples: "GET / *\/*", "ANY / text/*", "GET /products", "GET / text/json".
+   * @param $route String interpreted route.
+   * @param $target the callable target.
+   * @todo Support constuction via array and move this to astatic factory method. Faster.
    */
   public function __construct($route, $target) {
     $this->target = $target;
@@ -117,10 +118,6 @@ class Route extends AbstractRoute
     return $match;
   }
 
-  public function getTokens() {
-    return $this->tokens;
-  }
-
   /**
    * See if path matches route spec path, and collect tokens while at it.
    */
@@ -154,7 +151,11 @@ class Route extends AbstractRoute
     return $match ? $matchedTokens : null;
   }
 
-  public function target() {
+  public function getTokens() {
+    return $this->tokens;
+  }
+
+  public function getTarget() {
     return $this->target;
   }
 
