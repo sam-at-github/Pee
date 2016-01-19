@@ -1,4 +1,6 @@
 <?php
+namespace Exception;
+
 /**
  * Represents an error condition that is specific to HTTP transport.
  * The exception has semantics inline with the given HTTP error code.

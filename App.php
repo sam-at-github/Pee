@@ -1,7 +1,7 @@
 <?php
 /**
- * Singleton for encapsulating basic global state of a web application.
- * Contains a configuration space, the HTTP request & response singletons, and global error handling.
+ * Singleton for encapsulating basic global state of a web application - a place to hang stuff.
+ * Contains a configuration space, global error handling, the HTTP request & response singletons, the router.
  */
 class App implements \ArrayAccess
 {
@@ -9,10 +9,11 @@ class App implements \ArrayAccess
   private $request;
   private $response;
   private $config;
+  private $router;
   private $errorHandlers = [];
-  private static $defaultSettings = [
-  ];
+  private static $defaultSettings = [];
   const DEFAULT_CONFIG_FILE = "./config.yml";
+  const DEFAULT_ROUTER_CLASS = "Router";
 
   /**
    * Initialize everything. App now controls the response.
@@ -26,6 +27,8 @@ class App implements \ArrayAccess
     $this->initErrors([$this, "defaultErrorHandler"]);
     $this->request =  new HttpRequest();
     $this->response = new HttpResponse();
+    $routerClass = $this['ROUTER_CLASS'] ? $this['ROUTER_CLASS'] : static::DEFAULT_ROUTER_CLASS;
+    $this->router = new $routerClass();
     register_shutdown_function([$this, "send"]);
     ob_start();
   }
@@ -127,6 +130,37 @@ class App implements \ArrayAccess
    */
   public function getResponse()  {
     return $this->response;
+  }
+
+  public function getRouter() {
+    return $this->router();
+  }
+
+  /**
+   * Convenience map four common Http verbs on to same named end points of a given object.
+   * Maybe Router should do this.
+   */
+  public function mapRoutesTo($controller) {
+    $this->router->addRoute(new Route("GET /", [$controller, "get"]));
+    $this->router->addRoute(new Route("POST /", [$controller, "post"]));
+    $this->router->addRoute(new Route("PUT /", [$controller, "put"]));
+    $this->router->addRoute(new Route("DELETE /", [$controller, "delete"]));
+  }
+
+  /**
+   * App takes care of routing.
+   * We had a need for this basic wrapping over Router->run() so may as well do it here.
+   */
+  public function dispatchToRoute() {
+    $route = $this->router->run($this->request);
+    if(!isset($route)) {
+      throw new Exception\HttpEquivalentException("", 404);
+    }
+    $target = $route->getTarget();
+    if(!is_callable($target)) {
+      throw new Exception\HttpEquivalentException("Route found but route not callable", 500);
+    }
+    call_user_func($target, $this, $route->getTokens());
   }
 
   public function offsetGet($offset) {
