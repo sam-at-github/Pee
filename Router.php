@@ -25,9 +25,9 @@ class Router //extends AbstractRouter
     return isset($this->routes[$i]) ? $this->routes[$i] : null;
   }
 
-  public function deleteRoute($i) {
+  public function removeRoute($i) {
     if(isset($this->routes[$i])) {
-      unset($this->routes[$i]);
+      array_splice($this->routes, $i, 1, []);
       return true;
     }
     return false;
