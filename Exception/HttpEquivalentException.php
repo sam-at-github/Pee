@@ -1,5 +1,5 @@
 <?php
-namespace Exception;
+namespace Pee\Exception;
 
 /**
  * Represents an error condition that is specific to HTTP transport.

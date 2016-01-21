@@ -1,4 +1,7 @@
 <?php
+
+namespace Pee;
+
 abstract class AbstractRouter implements IteratorAggregate
 {
   //public abstract function __construct($policy);

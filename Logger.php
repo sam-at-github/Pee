@@ -5,8 +5,7 @@
  * There is a package that defines some jhelper classes specifically \Psr\Log\AbstractLogger. You extend and implement log();
  * See http://www.php-fig.org/psr/psr-3/.
  */
-namespace Psr\Log;
-require_once 'vendor/autoload.php';
+namespace Pee;
 
 /**
  * Psr Logger.

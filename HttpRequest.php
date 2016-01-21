@@ -1,5 +1,7 @@
 <?php
 
+namespace Pee;
+
 /**
  * Extend http\Env\Request with some basic functionality and caching.
  * @todo Needs tidy up.

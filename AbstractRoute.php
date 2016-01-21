@@ -1,4 +1,7 @@
 <?php
+
+namespace Pee;
+
 abstract class AbstractRoute
 {
   public abstract function accept($source);

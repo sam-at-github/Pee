@@ -1,4 +1,7 @@
 <?php
+
+namespace Pee;
+
 /**
  * What should the target of a route be ni our framework?
  * Argument: JIT instantiating a class is faster. So the route wrapper should support interpreting a string specifying the route as *well* as a callable.

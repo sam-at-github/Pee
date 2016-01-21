@@ -1,5 +1,7 @@
 <?php
 
+namespace Pee;
+
 interface ConfigHive
 {
   public function overlay($resource, $recursive = false);

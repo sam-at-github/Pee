@@ -1,5 +1,7 @@
 <?php
 
+namespace Pee;
+
 /**
  * A route to a view.
  */
@@ -92,7 +94,7 @@ class Route extends AbstractRoute
     defined('DEBUG') && var_dump("After Path: $match");
     // Mime
     if($match) {
-      $accepts = $request->getHeader("Accept", "\AcceptHeader");
+      $accepts = $request->getHeader("Accept", "\Pee\AcceptHeader");
       $accepts = empty($accepts) ? null : $accepts->getParams();
       if(!empty($accepts)) {
         $match = false;

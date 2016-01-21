@@ -1,6 +1,10 @@
 <?php
-// use \http\Env\Response as HttpResponse; // Unfortunately this only effects the local file.
+namespace Pee;
+
+/** Unfortunately this only effects the local file. */
+// use \http\Env\Response as HttpResponse;
+
 /**
- * Don't need to overwrite any right now. But \http\Env\Response doesn't match HttpRequest..
+ * Don't need to overwrite any right now, but \http\Env\Response and HttpRequest .. ew.
  */
 class HttpResponse extends \http\Env\Response {}

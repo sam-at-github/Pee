@@ -1,4 +1,7 @@
 <?php
+
+namespace Pee;
+
 /**
  * Singleton for encapsulating basic global state of a web application - a place to hang stuff.
  * Contains a configuration space, global error handling, the HTTP request & response singletons, the router.
@@ -13,7 +16,7 @@ class App implements \ArrayAccess
   private $errorHandlers = [];
   private static $defaultSettings = [];
   const DEFAULT_CONFIG_FILE = "./config.yml";
-  const DEFAULT_ROUTER_CLASS = "Router";
+  const DEFAULT_ROUTER_CLASS = "Pee\Router";
 
   /**
    * Initialize everything. App now controls the response.

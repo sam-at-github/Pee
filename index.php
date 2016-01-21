@@ -1,4 +1,7 @@
 <?php
+
+namespace Pee;
+
 /**
  * A simple sample application of the framework.
  */

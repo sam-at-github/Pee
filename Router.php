@@ -1,5 +1,7 @@
 <?php
 
+namespace Pee;
+
 /**
  * Select a view based off of a HTTP Request.
  * The first Route that accepts the current request is used. Thus order is important.

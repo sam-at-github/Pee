@@ -1,5 +1,7 @@
 <?php
 
+namespace Pee;
+
 /**
  * Simple wrapper on a nested storage structure.
  * Supports (de)serializing from a small number of baked in formats.

@@ -33,6 +33,6 @@ class MyLoader
 
 $myPath = dirname(realpath(__FILE__));
 $myLoader = new MyLoader([
-  "\\" => $myPath
+  "Pee" => $myPath
 ]);
 spl_autoload_register([$myLoader, "load"]);
