@@ -53,10 +53,11 @@ class App implements \ArrayAccess, ConfigHive
   }
 
   /**
-   * Everything we can handle and that is defined as an error via ERRORS config, is remapped to an Exception.
+   * Everything we can handle and that is defined as an error, is remapped to an Exception.
+   * @todo add ERRORS config variable and override default.
    */
   private function initErrors() {
-    //$errors = isset($this['ERRORS']) ? $this['ERRORS'] : (E_ALL|E_STRICT) & ~(E_NOTICE|E_USER_NOTICE);
+    $errors = (E_ALL|E_STRICT) & ~(E_NOTICE|E_USER_NOTICE);
     set_error_handler(
       function($errno, $errmsg, $errfile, $errline, $errcontext) {
         throw new \ErrorException($errmsg, $errno, $errno, $errfile, $errline);
