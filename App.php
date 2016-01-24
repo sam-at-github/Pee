@@ -26,8 +26,8 @@ class App implements \ArrayAccess, ConfigHive
     if(headers_sent()) {
       throw new \RuntimeException("Can't initialize app after headers have been sent");
     }
-    $this->loadConfig($config);
     $this->initErrors([$this, "defaultErrorHandler"]);
+    $this->loadConfig($config);
     $this->request =  new HttpRequest();
     $this->response = new HttpResponse();
     $routerClass = $this['ROUTER_CLASS'] ? $this['ROUTER_CLASS'] : static::DEFAULT_ROUTER_CLASS;
