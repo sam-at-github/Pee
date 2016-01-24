@@ -6,7 +6,7 @@ namespace Pee;
  * Singleton for encapsulating basic global state of a web application - a place to put stuff.
  * Contains a configuration space, global error handling, the HTTP request & response singletons, a router.
  */
-class App implements \ArrayAccess
+class App implements \ArrayAccess, \ConfigHive
 {
   private static $instance = null;
   private $request;
@@ -46,6 +46,10 @@ class App implements \ArrayAccess
     else {
       $this->config = new Hive();
     }
+  }
+
+  public function getConfig() {
+    return $this->config;
   }
 
   /**
@@ -169,6 +173,22 @@ class App implements \ArrayAccess
   public function addRoute($routeStr, callable $target) {
     $this->router->addRoute(new Route($routeStr));
   }
+
+  /* Config Hive interface. Delegate to $config. */
+
+  public function overlay($resource, $recursive = false) {
+    return $this->config->overlay($resource, $recursive);
+  }
+
+  public function history() {
+    return $this->config->history();
+  }
+
+  public function sync($file, $type = null) {
+    return $this->config->sync($file, $type);
+  }
+
+  /** ArrayAccess interface. Delegate to $config. */
 
   public function offsetGet($offset) {
     return $this->config->offsetGet($offset);
