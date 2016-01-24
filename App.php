@@ -57,7 +57,7 @@ class App implements \ArrayAccess, ConfigHive
    * @todo add ERRORS config variable and override default.
    */
   private function initErrors() {
-    $errors = (E_ALL|E_STRICT) & ~(E_NOTICE|E_USER_NOTICE);
+    $errors = (E_ALL) & ~(E_STRICT|E_NOTICE|E_USER_NOTICE);
     set_error_handler(
       function($errno, $errmsg, $errfile, $errline, $errcontext) {
         throw new \ErrorException($errmsg, $errno, $errno, $errfile, $errline);
