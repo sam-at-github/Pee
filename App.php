@@ -11,7 +11,7 @@ class App implements \ArrayAccess, ConfigHive
   private static $instance = null;
   private $request;
   private $response;
-  private $config;
+  private $config = [];
   private $router;
   private $errorHandlers = [];
   private static $defaultSettings = [];
