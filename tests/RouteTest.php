@@ -17,10 +17,10 @@ class RouteTest extends PHPUnit_Framework_TestCase
    * @dataProvider routeMethodTestProvider
    */
   public function testRouteMethod($method, $url, $route, $match) {
-    $request = new HttpRequest();
+    $request = new \Pee\HttpRequest();
     $request->setRequestUrl($url);
     $request->setRequestMethod($method);
-    $route = new Route($route, "");
+    $route = new \Pee\Route($route, "");
     $this->assertEquals($route->accept($request), $match);
   }
 
@@ -49,9 +49,9 @@ class RouteTest extends PHPUnit_Framework_TestCase
    * @dataProvider routePathTestProvider
    */
   public function testRoutePath($url, $route, $match) {
-    $request = new HttpRequest();
+    $request = new \Pee\HttpRequest();
     $request->setRequestUrl($url);
-    $route = new Route($route, "");
+    $route = new \Pee\Route($route, "");
     $this->assertEquals($route->accept($request), $match);
   }
 
@@ -69,10 +69,10 @@ class RouteTest extends PHPUnit_Framework_TestCase
    * @dataProvider routeAcceptHeaderTestProvider
    */
   public function testRouteAcceptHeader($acceptHeader, $url, $route, $match) {
-    $request = new HttpRequest();
+    $request = new \Pee\HttpRequest();
     $request->setRequestUrl($url);
     $request->setHeader("Accept", $acceptHeader);
-    $route = new Route($route, "");
+    $route = new \Pee\Route($route, "");
     $this->assertEquals($route->accept($request), $match);
   }
 

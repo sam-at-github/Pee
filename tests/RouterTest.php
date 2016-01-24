@@ -8,44 +8,44 @@ class RouterTest extends PHPUnit_Framework_TestCase
   /**
    */
   public function testRouteMethod() {
-    $request = new HttpRequest();
+    $request = new \Pee\HttpRequest();
     $request->setRequestUrl("http://foo.com");
     $request->setRequestMethod("GET");
-    $router = new Router();
-    $router->addRoute(new Route("PUT /", false));
-    $router->addRoute(new Route("POST /", false));
-    $router->addRoute(new Route("GET /", true));
-    $router->addRoute(new Route("GET /", false));
-    $router->addRoute(new Route("ANY /", false));
+    $router = new \Pee\Router();
+    $router->addRoute(new \Pee\Route("PUT /", false));
+    $router->addRoute(new \Pee\Route("POST /", false));
+    $router->addRoute(new \Pee\Route("GET /", true));
+    $router->addRoute(new \Pee\Route("GET /", false));
+    $router->addRoute(new \Pee\Route("ANY /", false));
     $target = $router->run($request);
     $this->assertTrue($target->getTarget());
   }
 
   public function testRoutePath() {
-    $request = new HttpRequest();
+    $request = new \Pee\HttpRequest();
     $request->setRequestUrl("http://foo.com/bah?x=y");
     $request->setRequestMethod("GET");
-    $router = new Router();
-    $router->addRoute(new Route("PUT /", false));
-    $router->addRoute(new Route("POST /", false));
-    $router->addRoute(new Route("GET /", false));
-    $router->addRoute(new Route("GET /bah", true));
-    $router->addRoute(new Route("ANY /", false));
+    $router = new \Pee\Router();
+    $router->addRoute(new \Pee\Route("PUT /", false));
+    $router->addRoute(new \Pee\Route("POST /", false));
+    $router->addRoute(new \Pee\Route("GET /", false));
+    $router->addRoute(new \Pee\Route("GET /bah", true));
+    $router->addRoute(new \Pee\Route("ANY /", false));
     $target = $router->run($request);
     $this->assertTrue($target->getTarget());
   }
 
   public function testRouteAccept() {
-    $request = new HttpRequest();
+    $request = new \Pee\HttpRequest();
     $request->setRequestUrl("http://foo.com/bah?x=y");
     $request->setHeader("Accept", "*/*");
     $request->setRequestMethod("GET");
-    $router = new Router();
-    $router->addRoute(new Route("GET /", 0));
-    $router->addRoute(new Route("GET /bah", 1));
-    $router->addRoute(new Route("GET /bah */*", 2));
-    $router->addRoute(new Route("GET /bah */*", 3));
-    $router->addRoute(new Route("ANY /", 4));
+    $router = new \Pee\Router();
+    $router->addRoute(new \Pee\Route("GET /", 0));
+    $router->addRoute(new \Pee\Route("GET /bah", 1));
+    $router->addRoute(new \Pee\Route("GET /bah */*", 2));
+    $router->addRoute(new \Pee\Route("GET /bah */*", 3));
+    $router->addRoute(new \Pee\Route("ANY /", 4));
     // Should find 2nd.
     $this->assertEquals($router->run($request)->getTarget(), 1);
     $router->removeRoute(1);
@@ -58,17 +58,17 @@ class RouterTest extends PHPUnit_Framework_TestCase
   }
 
   public function testRouteAcceptMore() {
-    $request = new HttpRequest();
+    $request = new \Pee\HttpRequest();
     $request->setRequestUrl("http://foo.com/bah?x=y");
     $request->setHeader("Accept", "thing/*");
     $request->setRequestMethod("GET");
-    $router = new Router();
-    $router->addRoute(new Route("GET /", 0));
-    $router->addRoute(new Route("GET /bah", 1));
-    $router->addRoute(new Route("GET /bah */*", 2));
-    $router->addRoute(new Route("GET /bah thing/*", 3));
-    $router->addRoute(new Route("GET /bah thing/bong", 4));
-    $router->addRoute(new Route("ANY /", 5));
+    $router = new \Pee\Router();
+    $router->addRoute(new \Pee\Route("GET /", 0));
+    $router->addRoute(new \Pee\Route("GET /bah", 1));
+    $router->addRoute(new \Pee\Route("GET /bah */*", 2));
+    $router->addRoute(new \Pee\Route("GET /bah thing/*", 3));
+    $router->addRoute(new \Pee\Route("GET /bah thing/bong", 4));
+    $router->addRoute(new \Pee\Route("ANY /", 5));
     // Should find 4th.
     $this->assertEquals($router->run($request)->getTarget(), 3);
     $request->setHeader("Accept", "thing/bong");
@@ -76,13 +76,13 @@ class RouterTest extends PHPUnit_Framework_TestCase
   }
 
   public function testRouteNoRoute() {
-    $request = new HttpRequest();
+    $request = new \Pee\HttpRequest();
     $request->setRequestUrl("http://foo.com/bah/lah?x=y");
     $request->setRequestMethod("GET");
-    $router = new Router();
-    $router->addRoute(new Route("GET /", false));
-    $router->addRoute(new Route("GET /bah", false));
-    $router->addRoute(new Route("ANY /", false));
+    $router = new \Pee\Router();
+    $router->addRoute(new \Pee\Route("GET /", false));
+    $router->addRoute(new \Pee\Route("GET /bah", false));
+    $router->addRoute(new \Pee\Route("ANY /", false));
     $target = $router->run($request);
     $this->assertNull($target);
   }

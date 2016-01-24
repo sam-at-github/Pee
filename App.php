@@ -6,7 +6,7 @@ namespace Pee;
  * Singleton for encapsulating basic global state of a web application - a place to put stuff.
  * Contains a configuration space, global error handling, the HTTP request & response singletons, a router.
  */
-class App implements \ArrayAccess, \ConfigHive
+class App implements \ArrayAccess, ConfigHive
 {
   private static $instance = null;
   private $request;
@@ -158,7 +158,7 @@ class App implements \ArrayAccess, \ConfigHive
    * App takes care of routing.
    * We had a need for this basic wrapping over Router->run() so may as well do it here.
    */
-  public function dispatch() {
+  public function run() {
     $route = $this->router->run($this->request);
     if(!isset($route)) {
       throw new Exception\HttpEquivalentException("", 404);
