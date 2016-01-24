@@ -3,8 +3,8 @@
 namespace Pee;
 
 /**
- * Singleton for encapsulating basic global state of a web application - a place to hang stuff.
- * Contains a configuration space, global error handling, the HTTP request & response singletons, the router.
+ * Singleton for encapsulating basic global state of a web application - a place to put stuff.
+ * Contains a configuration space, global error handling, the HTTP request & response singletons, a router.
  */
 class App implements \ArrayAccess
 {
@@ -154,7 +154,7 @@ class App implements \ArrayAccess
    * App takes care of routing.
    * We had a need for this basic wrapping over Router->run() so may as well do it here.
    */
-  public function dispatchToRoute() {
+  public function dispatch() {
     $route = $this->router->run($this->request);
     if(!isset($route)) {
       throw new Exception\HttpEquivalentException("", 404);
@@ -164,6 +164,10 @@ class App implements \ArrayAccess
       throw new Exception\HttpEquivalentException("Route found but route not callable", 500);
     }
     call_user_func($target, $this, $route->getTokens());
+  }
+
+  public function addRoute($routeStr, callable $target) {
+    $this->router->addRoute(new Route($routeStr));
   }
 
   public function offsetGet($offset) {
