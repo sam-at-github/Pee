@@ -26,7 +26,7 @@ class App implements \ArrayAccess, ConfigHive
     if(headers_sent()) {
       throw new \RuntimeException("Can't initialize app after headers have been sent");
     }
-    $this->initErrors([$this, "defaultErrorHandler"]);
+    $this->initErrors();
     $this->loadConfig($config);
     $this->request =  new HttpRequest();
     $this->response = new HttpResponse();
@@ -56,7 +56,7 @@ class App implements \ArrayAccess, ConfigHive
    * Everything we can handle and that is defined as an error via ERRORS config, is remapped to an Exception.
    */
   private function initErrors() {
-    $errors = isset($this['ERRORS']) ? $this['ERRORS'] : (E_ALL|E_STRICT) & ~(E_NOTICE|E_USER_NOTICE);
+    //$errors = isset($this['ERRORS']) ? $this['ERRORS'] : (E_ALL|E_STRICT) & ~(E_NOTICE|E_USER_NOTICE);
     set_error_handler(
       function($errno, $errmsg, $errfile, $errline, $errcontext) {
         throw new \ErrorException($errmsg, $errno, $errno, $errfile, $errline);
