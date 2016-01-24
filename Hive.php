@@ -97,7 +97,7 @@ class Hive implements \ArrayAccess, ConfigHive
     if(is_string($resource)) {
       $resource = $this->load($resource);
     }
-    if(!is_array($resource)) {
+    elseif(!is_array($resource)) {
       throw new \InvalidArgumentException("Expected array. Got " . gettype($resource));
     }
     if($recursive == false) {
