@@ -8,8 +8,8 @@ namespace Pee\Exception;
 class HttpEquivalentException extends \Exception {
 
   public function __construct($message = "", $code = 0, $previous = null) {
-    if(empty($message) && isset(Http::$CODES[$code])) {
-      $message = Http::$CODES[$code];
+    if(empty($message) && isset(\Pee\Http::$CODES[$code])) {
+      $message = \Pee\Http::$CODES[$code];
     }
     parent::__construct($message, $code, $previous);
   }

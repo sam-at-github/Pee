@@ -29,6 +29,12 @@ class HttpRequest extends \http\Env\Request
     parent::setRequestUrl($url);
     $this->parsedUrl = parse_url($this->getRequestUrl());
   }
+
+  public function setParsedRequestUrl(array $url) {
+    $urlStr = Http::unparse_url($url);
+    parent::setRequestUrl($urlStr);
+    $this->parsedUrl = $url;
+  }
 }
 
 /**
