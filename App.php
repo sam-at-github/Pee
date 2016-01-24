@@ -196,7 +196,7 @@ class App implements \ArrayAccess, ConfigHive
   }
 
   public function offsetSet($offset, $value) {
-    return $this->config->offsetSet($offset);
+    return $this->config->offsetSet($offset, $value);
   }
 
   public function offsetExists($offset) {
