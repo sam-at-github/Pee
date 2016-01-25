@@ -39,6 +39,9 @@ class App implements \ArrayAccess, ConfigHive
     $this->checkSapi();
   }
 
+  /**
+   * Try load and then init config.
+   */
   private function loadConfig($config) {
     if($config) {
       $this->config = new Hive($config);
@@ -71,7 +74,7 @@ class App implements \ArrayAccess, ConfigHive
   public function setLogger(\Psr\Log\AbstractLogger $logger) {
     $this->logger = $logger;
   }
-  
+
   /**
    * Everything we can handle and that is defined as an error, is remapped to an Exception.
    * @todo add ERRORS config variable and override default.
@@ -265,6 +268,10 @@ class App implements \ArrayAccess, ConfigHive
 
   public function offsetUnset($offset) {
     return $this->config->offsetUnset($offset);
+  }
+
+  public function toArray() {
+    return $this->config->toArray();
   }
 
   /**
