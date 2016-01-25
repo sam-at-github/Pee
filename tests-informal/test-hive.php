@@ -1,11 +1,11 @@
 <?php
-require_once 'Hive.php';
+require_once '../loader.php';
 $yamlData = 'yaml.yml';
 $hashData = [
   'a' => 99,
   'x' => ['y', 'z']
 ];
-$hive = new Hive();
+$hive = new \Pee\Hive();
 print "--- Load & Overlay\n";
 $hive['x'] = 22;
 var_dump($hive->dump());
@@ -24,4 +24,17 @@ var_dump($hive["A.B.C"]);
 var_dump($hive["X.Y.Z"]);
 
 print "\n---\n";
-var_dump($hive instanceof ArrayAccess);
+var_dump($hive instanceof \ArrayAccess);
+print "\n---\n";
+$hive = new \Pee\Hive();
+$val = new StdClass();
+$val2 = 99;
+$hive['A'] = $val;
+$hive['B'] = $val2;
+$a = $hive->toArray();
+var_dump($a);
+var_dump($hive->dump());
+$a['A']->x = 88;
+$a['B'] = 77;
+var_dump($a);
+var_dump($hive->dump());

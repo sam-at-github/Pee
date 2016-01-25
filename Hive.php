@@ -134,6 +134,10 @@ class Hive implements \ArrayAccess, ConfigHive
     return $this->data;
   }
 
+  public function toArray() {
+    return $this->data;
+  }
+
   /**
    * Handle loading contents of a file.
    * @param $file name of existing file containing the data.
