@@ -89,4 +89,13 @@ class Logger extends \Psr\Log\AbstractLogger
     }
     return $str;
   }
+
+  /**
+   * Convenience. Couldn't think where else to stick it.
+   */
+  public function var_dump_s() {
+    ob_start();
+    call_user_func_array('var_dump', func_get_args());
+    return ob_get_clean();
+  }
 }
