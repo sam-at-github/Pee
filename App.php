@@ -103,9 +103,16 @@ class App implements \ArrayAccess, ConfigHive
    */
   public function defaultErrorHandler($code, $message, $exception = null) {
     ob_clean();
+    $responseCode = 500;
+    if($exception instanceof HttpEquivalentException) {
+      $responseCode = $exception->getCode();
+    }
+    $this->response->setResponseCode($responseCode);
     $mime = $this->response->getHeader("Content-Type");
     switch($mime) {
-      case "application/json": {
+      case "application/json":
+      case "text/json":
+      {
         print json_encode(['code' => $code, 'message' => $message]);
         break;
       }
