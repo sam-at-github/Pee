@@ -12,6 +12,7 @@ class App implements \ArrayAccess, ConfigHive
   private $request;
   private $response;
   private $config = [];
+  private $logger;
   private $router;
   private $errorHandlers = [];
   private static $defaultSettings = [];
@@ -27,15 +28,20 @@ class App implements \ArrayAccess, ConfigHive
       throw new \RuntimeException("Can't initialize app after headers have been sent");
     }
     $this->initErrors();
+    register_shutdown_function([$this, "send"]);
+    ob_start();
     $this->loadConfig($config);
+    $this->logger = new Logger();
     $this->request =  new HttpRequest();
     $this->response = new HttpResponse();
     $routerClass = $this['ROUTER_CLASS'] ? $this['ROUTER_CLASS'] : static::DEFAULT_ROUTER_CLASS;
     $this->router = new $routerClass();
-    register_shutdown_function([$this, "send"]);
-    ob_start();
+    $this->checkSapi();
   }
 
+  /**
+   * Try load and then init config.
+   */
   private function loadConfig($config) {
     if($config) {
       $this->config = new Hive($config);
@@ -46,10 +52,27 @@ class App implements \ArrayAccess, ConfigHive
     else {
       $this->config = new Hive();
     }
+    $this->initConfig();
+  }
+
+  /**
+   * Make some env available via the hive.
+   * @todo probably will be creep force to add more and more to this. Doing it iteratively.
+   */
+  private function initConfig() {
+    $this['BASE'] = dirname($_SERVER['SCRIPT_NAME']);
   }
 
   public function getConfig() {
     return $this->config;
+  }
+
+  public function getLogger() {
+    return $this->logger;
+  }
+
+  public function setLogger(\Psr\Log\AbstractLogger $logger) {
+    $this->logger = $logger;
   }
 
   /**
@@ -67,6 +90,27 @@ class App implements \ArrayAccess, ConfigHive
     set_exception_handler([$this, 'exceptionHandler']);
   }
 
+  private function checkSapi() {
+    global $argv;
+    if(PHP_SAPI == "cli") {
+      if(!isset($argv[1])) {
+        throw new \Exception("Usage: {$argv[0]} <method> [<path=/>]");
+      }
+      $this->request->setRequestMethod($argv[1]);
+      $uriPath = isset($argv[2]) ? ltrim($argv[2], "/") : "";
+      $this->request->setRequestUrl("/$uriPath");
+      $this->logger->info("CLI mode {$this->request}");
+    }
+    if(PHP_SAPI != "cli") {
+      $url = $this->request->getParsedUrl();
+      if(strpos($url['path'], $this['BASE']) === 0) {
+        $url['path'] = substr($url['path'], strlen($this['BASE']));
+        $this->request->setParsedRequestUrl($url);
+        $this->logger->info("Rebase $uri with {$this['BASE']}");
+      }
+    }
+  }
+
   /**
    * In built exception handler. Passes off if user defined handler is registered.
    */
@@ -77,18 +121,27 @@ class App implements \ArrayAccess, ConfigHive
       $code = $exception->getCode();
       $message = $exception->getMessage();
     }
-    call_user_func($this->getErrorHandler(), $code, $message, $exception);
+    $this->response->setResponseCode($code);
+    call_user_func($this->getErrorHandler(), $this->response, $code, $message, $exception);
   }
 
+  /**
+   * Finish up. Send HTTP response.
+   */
   public function send() {
     $this->response->getBody()->append(ob_get_clean());
     $this->response->send();
   }
 
+  /**
+   * Set customer error handler. The callback takes the same params as defaultErrorHandler().
+   * @see defaultErrorHandler
+   */
   public function setErrorHandler($callback) {
     if(!is_callable($callback)) {
       throw \InvalidArgumentException("Can't set callback. Argument is not callable");
     }
+    $this->errorHandler = $callback;
   }
 
   public function getErrorHandler() {
@@ -97,29 +150,23 @@ class App implements \ArrayAccess, ConfigHive
 
   /**
    * The deafult error handlers tries to do provode an appropriate response for MIME if set. Defaults to HTML.
+   * @param $response HttpResponse
    * @param $code HTTP error code.
    * @param $message HTTP error message.
    * @param $exception Exception that caused this error if any.
    */
-  public function defaultErrorHandler($code, $message, $exception = null) {
-    ob_clean();
-    $responseCode = 500;
-    if($exception instanceof HttpEquivalentException) {
-      $responseCode = $exception->getCode();
-    }
-    $this->response->setResponseCode($responseCode);
+  public function defaultErrorHandler(\Pee\HttpResponse $response, $code, $message, $exception = null) {
+    $this['CLEANONERROR'] && ob_clean();
     $mime = $this->response->getHeader("Content-Type");
     switch($mime) {
-      case "application/json":
-      case "text/json":
-      {
+      case "application/json": {
         print json_encode(['code' => $code, 'message' => $message]);
         break;
       }
       case "application/phpcli" :
       default: {
         $trace = ((bool)ini_get('display_errors')) ? $exception . "" : "";
-        $output = ini_get('display_errors') == "stderr" ? STDERR : STDOUT;
+        $output = (ini_get('display_errors') === "stderr") ? fopen("php://stderr", "w") : fopen("php://output", "w");
         fprintf($output, "<!DOCTYPE html>
 <html>
   <head><title>$code $message</title></head>
@@ -153,7 +200,6 @@ class App implements \ArrayAccess, ConfigHive
 
   /**
    * Convenience map four common Http verbs on to same named end points of a given object.
-   * Maybe Router should do this.
    */
   public function mapRoutesTo($controller) {
     $this->router->addRoute(new Route("GET /", [$controller, "get"]));
@@ -163,8 +209,8 @@ class App implements \ArrayAccess, ConfigHive
   }
 
   /**
-   * App takes care of routing.
-   * We had a need for this basic wrapping over Router->run() so may as well do it here.
+   * App takes care of routing. Had need for this basic wrapping over Router->run() so may as well do it here.
+   * Will call before|afterRoute() if target a class and these exist - like Fatfree.
    */
   public function run() {
     $route = $this->router->run($this->request);
@@ -175,11 +221,21 @@ class App implements \ArrayAccess, ConfigHive
     if(!is_callable($target)) {
       throw new Exception\HttpEquivalentException("Route found but route not callable", 500);
     }
+    @list($obj, $method) = $target;
+    $before = [$obj, 'beforeRoute'];
+    $after = [$obj, 'afterRoute'];
+    $tokens = $route->getTokens();
+    if(is_callable($before)) {
+      call_user_func($before, $this, $tokens);
+    }
     call_user_func($target, $this, $route->getTokens());
+    if(is_callable($after)) {
+      call_user_func($after, $this, $tokens);
+    }
   }
 
   public function addRoute($routeStr, callable $target) {
-    $this->router->addRoute(new Route($routeStr));
+    $this->router->addRoute(new Route($routeStr, $target));
   }
 
   /* Config Hive interface. Delegate to $config. */
@@ -203,7 +259,7 @@ class App implements \ArrayAccess, ConfigHive
   }
 
   public function offsetSet($offset, $value) {
-    return $this->config->offsetSet($offset);
+    return $this->config->offsetSet($offset, $value);
   }
 
   public function offsetExists($offset) {
@@ -212,6 +268,10 @@ class App implements \ArrayAccess, ConfigHive
 
   public function offsetUnset($offset) {
     return $this->config->offsetUnset($offset);
+  }
+
+  public function toArray() {
+    return $this->config->toArray();
   }
 
   /**
