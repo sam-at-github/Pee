@@ -56,8 +56,8 @@ class App implements \ArrayAccess, ConfigHive
   }
 
   /**
-   * Make some env available via the hive.
-   * @todo probably will be creep force to add more and more to this. Doing it iteratively.
+   * Expose some of our environment available via the hive.
+   * Note I can see ~everything slowly leaking over into the hive.. Will do it incrementally.
    */
   private function initConfig() {
     $this['BASE'] = dirname($_SERVER['SCRIPT_NAME']);
@@ -159,7 +159,8 @@ class App implements \ArrayAccess, ConfigHive
     $this['CLEANONERROR'] && ob_clean();
     $mime = $this->response->getHeader("Content-Type");
     switch($mime) {
-      case "application/json": {
+      case "application/json":
+      case "text/json": {
         print json_encode(['code' => $code, 'message' => $message]);
         break;
       }
