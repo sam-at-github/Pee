@@ -60,7 +60,7 @@ class App implements \ArrayAccess, ConfigHive
    * Note I can see ~everything slowly leaking over into the hive.. Will do it incrementally.
    */
   private function initConfig() {
-    $this['BASE'] = dirname($_SERVER['SCRIPT_NAME']);
+    $this['BASE'] = rtrim(dirname($_SERVER['SCRIPT_NAME']), "/") . "/"; # Always end in "/".
   }
 
   public function getConfig() {
@@ -90,6 +90,10 @@ class App implements \ArrayAccess, ConfigHive
     set_exception_handler([$this, 'exceptionHandler']);
   }
 
+  /**
+   * Check if invoked via CLI or web. Rebase $request path accordingly in both cases.
+   * BASE is already set to dirname($_SERVER['SCRIPT_NAME']);
+   */
   private function checkSapi() {
     global $argv;
     if(PHP_SAPI == "cli") {
@@ -104,9 +108,15 @@ class App implements \ArrayAccess, ConfigHive
     if(PHP_SAPI != "cli") {
       $url = $this->request->getParsedUrl();
       if(strpos($url['path'], $this['BASE']) === 0) {
-        $url['path'] = substr($url['path'], strlen($this['BASE']));
+        $url['path'] = substr($url['path'], strlen($this['BASE'])-1);
+        if(substr($url['path'], strlen($url['path'])-1) == "/") { # Fix. HttpRequest doesn't like "//"
+          $url['path'] = rtrim($url['path'], "/") . "/";
+        }
+        if(empty($url['path'])) {  # Fix. HttpRequest doesn't like ""
+          $url['path'] = "/";
+        }
         $this->request->setParsedRequestUrl($url);
-        $this->logger->info("Rebase $uri with {$this['BASE']}");
+        $this->logger->info("Rebase {$url['path']} with {$this['BASE']}");
       }
     }
   }
@@ -179,12 +189,12 @@ class App implements \ArrayAccess, ConfigHive
         $output = (ini_get('display_errors') === "stderr") ? fopen("php://stderr", "w") : fopen("php://output", "w");
         fprintf($output, "<!DOCTYPE html>
 <html>
-  <head><title>$code $message</title></head>
+  <head><title>%d %s</title></head>
   <body>
-    <h1>$message</h1>
-    <p>$trace</p>
+    <h1>%s</h1>
+    <p>%s</p>
   </body>
-</html>\n");
+</html>\n", $code, $message, $message, $trace);
         break;
       }
     }
