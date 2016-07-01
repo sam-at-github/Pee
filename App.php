@@ -134,6 +134,15 @@ class App implements \ArrayAccess, ConfigHive
   }
 
   /**
+   * Redirect. Use this to redirect not header().
+   */
+  public function redirect($location) {
+    ob_clean();
+    $this->response->setResponseCode(302);
+    $this->response->setHeader("Location", $location);
+  }
+
+  /**
    * Set customer error handler. The callback takes the same params as defaultErrorHandler().
    * @see defaultErrorHandler
    */
