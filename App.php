@@ -90,6 +90,10 @@ class App implements \ArrayAccess, ConfigHive
     set_exception_handler([$this, 'exceptionHandler']);
   }
 
+  /**
+   * Check if invoked via CLI. Reset $request path accordingly.
+   * BASE is already set to dirname($_SERVER['SCRIPT_NAME']);
+   */
   private function checkSapi() {
     global $argv;
     if(PHP_SAPI == "cli") {
@@ -105,6 +109,8 @@ class App implements \ArrayAccess, ConfigHive
       $url = $this->request->getParsedUrl();
       if(strpos($url['path'], $this['BASE']) === 0) {
         $url['path'] = substr($url['path'], strlen($this['BASE']));
+        $url['path'] = rtrim($url['path'], "/"); # Fix. HttpRequest doesn't like "//"
+        $url['path'] = empty($url['path']) ? "/" : $url['path'];
         $this->request->setParsedRequestUrl($url);
         $this->logger->info("Rebase $uri with {$this['BASE']}");
       }
