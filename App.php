@@ -60,10 +60,7 @@ class App implements \ArrayAccess, ConfigHive
    * Note I can see ~everything slowly leaking over into the hive.. Will do it incrementally.
    */
   private function initConfig() {
-    $this['BASE'] = dirname($_SERVER['SCRIPT_NAME']);
-    if($this['BASE'] == ".") {
-      $this['BASE'] = "";
-    }
+    $this['BASE'] = rtrim(dirname($_SERVER['SCRIPT_NAME']), "/") . "/"; # Always end in "/".
   }
 
   public function getConfig() {
