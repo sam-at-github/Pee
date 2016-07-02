@@ -84,7 +84,7 @@ class Logger extends \Psr\Log\AbstractLogger
     if($showTrace) {
       for($i = 2; $i < sizeof($trace); $i++) {
         $class = isset($trace[$i]['class']) ? "{$trace[$i]['class']}::" : "";
-        $str .= "\n" . str_repeat(" ", $i) . "{$trace[$i]['file']}::$class{$trace[$i]['function']}";
+        @$str .= "\n" . str_repeat(" ", $i) . "{$trace[$i]['file']}::$class{$trace[$i]['function']}";
       }
     }
     return $str;
