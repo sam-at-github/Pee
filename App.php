@@ -91,7 +91,7 @@ class App implements \ArrayAccess, ConfigHive
   }
 
   /**
-   * Check if invoked via CLI. Reset $request path accordingly.
+   * Check if invoked via CLI or web. Rebase $request path accordingly in both cases.
    * BASE is already set to dirname($_SERVER['SCRIPT_NAME']);
    */
   private function checkSapi() {
@@ -108,9 +108,13 @@ class App implements \ArrayAccess, ConfigHive
     if(PHP_SAPI != "cli") {
       $url = $this->request->getParsedUrl();
       if(strpos($url['path'], $this['BASE']) === 0) {
-        $url['path'] = substr($url['path'], strlen($this['BASE']));
-        $url['path'] = rtrim($url['path'], "/"); # Fix. HttpRequest doesn't like "//"
-        $url['path'] = empty($url['path']) ? "/" : $url['path'];
+        $url['path'] = substr($url['path'], strlen($this['BASE'])-1);
+        if(substr($url['path'], strlen($url['path'])-1) == "/") { # Fix. HttpRequest doesn't like "//"
+          $url['path'] = rtrim($url['path'], "/") . "/";
+        }
+        if(empty($url['path'])) {  # Fix. HttpRequest doesn't like ""
+          $url['path'] = "/";
+        }
         $this->request->setParsedRequestUrl($url);
         $this->logger->info("Rebase {$url['path']} with {$this['BASE']}");
       }
