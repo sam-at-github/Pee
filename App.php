@@ -185,12 +185,12 @@ class App implements \ArrayAccess, ConfigHive
         $output = (ini_get('display_errors') === "stderr") ? fopen("php://stderr", "w") : fopen("php://output", "w");
         fprintf($output, "<!DOCTYPE html>
 <html>
-  <head><title>$code $message</title></head>
+  <head><title>%d %s</title></head>
   <body>
-    <h1>$message</h1>
-    <p>$trace</p>
+    <h1>%s</h1>
+    <p>%s</p>
   </body>
-</html>\n");
+</html>\n", $code, $message, $message, $trace);
         break;
       }
     }
