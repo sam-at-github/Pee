@@ -112,7 +112,7 @@ class App implements \ArrayAccess, ConfigHive
         $url['path'] = rtrim($url['path'], "/"); # Fix. HttpRequest doesn't like "//"
         $url['path'] = empty($url['path']) ? "/" : $url['path'];
         $this->request->setParsedRequestUrl($url);
-        $this->logger->info("Rebase $uri with {$this['BASE']}");
+        $this->logger->info("Rebase {$url['path']} with {$this['BASE']}");
       }
     }
   }
