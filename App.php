@@ -61,6 +61,9 @@ class App implements \ArrayAccess, ConfigHive
    */
   private function initConfig() {
     $this['BASE'] = dirname($_SERVER['SCRIPT_NAME']);
+    if($this['BASE'] == ".") {
+      $this['BASE'] = "";
+    }
   }
 
   public function getConfig() {
