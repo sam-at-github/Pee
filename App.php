@@ -27,13 +27,13 @@ class App implements \ArrayAccess, ConfigHive
     if(headers_sent()) {
       throw new \RuntimeException("Can't initialize app after headers have been sent");
     }
-    $this->initErrors();
-    register_shutdown_function([$this, "send"]);
-    ob_start();
-    $this->loadConfig($config);
     $this->logger = new Logger();
     $this->request =  new HttpRequest();
     $this->response = new HttpResponse();
+    $this->initErrors();
+    $this->loadConfig($config);
+    register_shutdown_function([$this, "send"]);
+    ob_start();
     $routerClass = $this['ROUTER_CLASS'] ? $this['ROUTER_CLASS'] : static::DEFAULT_ROUTER_CLASS;
     $this->router = new $routerClass();
     $this->checkSapi();
@@ -43,14 +43,12 @@ class App implements \ArrayAccess, ConfigHive
    * Try load and then init config.
    */
   private function loadConfig($config) {
+    $this->config = new Hive(); # If config load fails need this set coz Execptions uses it.
     if($config) {
       $this->config = new Hive($config);
     }
     elseif(file_exists(self::DEFAULT_CONFIG_FILE)) {
       $this->config = new Hive(self::DEFAULT_CONFIG_FILE);
-    }
-    else {
-      $this->config = new Hive();
     }
     $this->initConfig();
   }
