@@ -213,17 +213,18 @@ class App implements \ArrayAccess, ConfigHive
   }
 
   public function getRouter() {
-    return $this->router();
+    return $this->router;
   }
 
   /**
    * Convenience map four common Http verbs on to same named end points of a given object.
    */
-  public function mapRoutesTo($controller) {
-    $this->router->addRoute(new Route("GET /", [$controller, "get"]));
-    $this->router->addRoute(new Route("POST /", [$controller, "post"]));
-    $this->router->addRoute(new Route("PUT /", [$controller, "put"]));
-    $this->router->addRoute(new Route("DELETE /", [$controller, "delete"]));
+  public function mapRoutesTo($controller, $prefix = '') {
+    $this->router->addRoute(new Route("GET $prefix/@id", [$controller, "get"]));
+    $this->router->addRoute(new Route("POST $prefix/@id", [$controller, "post"]));
+    $this->router->addRoute(new Route("PUT $prefix/@id", [$controller, "put"]));
+    $this->router->addRoute(new Route("DELETE $prefix/@id", [$controller, "delete"]));
+    $this->router->addRoute(new Route("GET $prefix/", [$controller, "find"]));
   }
 
   /**
