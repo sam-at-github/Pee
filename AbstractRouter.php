@@ -2,7 +2,7 @@
 
 namespace Pee;
 
-abstract class AbstractRouter implements IteratorAggregate
+abstract class AbstractRouter implements \IteratorAggregate
 {
   //public abstract function __construct($policy);
   public abstract function addRoute(\AbstractRoute $route);
@@ -10,6 +10,6 @@ abstract class AbstractRouter implements IteratorAggregate
   public abstract function removeRoute($i);
   public abstract function getIterator();
   public abstract function getLastRoute();
-  public abstract function run($request); /* Now this can never be type hinted. Argh whoop. */
+  #public abstract function run($request); /* Now this can never be type hinted. Argh whoop. */
   public abstract function __toString();
 }

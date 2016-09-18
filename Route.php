@@ -81,7 +81,7 @@ class Route extends AbstractRoute
     if($match) {
       $url = $request->getParsedUrl();
       $path = empty($url["path"]) ? "/" : $url["path"]; // if not empty we should get an abs path.
-      $path = explode("/", rtrim($url["path"], "/"));
+      $path = explode("/", rtrim($path, "/"));
       //array_shift($path);
       $tokens = $this->tokenMatch($this->pathMatch, $path);
       if(isset($tokens)) {

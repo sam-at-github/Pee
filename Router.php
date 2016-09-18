@@ -6,7 +6,7 @@ namespace Pee;
  * Select a view based off of a HTTP Request.
  * The first Route that accepts the current request is used. Thus order is important.
  */
-class Router //extends AbstractRouter
+class Router extends AbstractRouter
 {
   private $routes = [];
   private $lastRoute = null;
