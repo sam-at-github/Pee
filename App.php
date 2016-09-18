@@ -120,21 +120,6 @@ class App implements \ArrayAccess, ConfigHive
   }
 
   /**
-   * In built exception handler. Passes off if user defined handler is registered.
-   * Don't try and map PHP exceptions to HTTP. A mapping depends on layer the exception occured at.
-   */
-  public function exceptionHandler($exception) {
-    $code = 500;
-    $message = Http::$CODES[500];
-    if($exception instanceof Exception\HttpEquivalentException) {
-      $code = $exception->getCode();
-      $message = $exception->getMessage();
-    }
-    $this->response->setResponseCode($code);
-    call_user_func($this->getErrorHandler(), $this->response, $code, $message, $exception);
-  }
-
-  /**
    * Finish up. Send HTTP response.
    */
   public function send() {
@@ -149,6 +134,20 @@ class App implements \ArrayAccess, ConfigHive
     ob_clean();
     $this->response->setResponseCode(302);
     $this->response->setHeader("Location", $location);
+  }
+
+  /**
+   * In built exception handler. Passes off if user defined handler is registered.
+   * Don't try and map PHP exceptions to HTTP errors. Depends on layer the exception occured at.
+   * But set the response code.
+   */
+  public function exceptionHandler($exception) {
+    $code = 500;
+    if($exception instanceof Exception\HttpEquivalentException) {
+      $code = $exception->getCode();
+    }
+    $this->response->setResponseCode($code);
+    call_user_func($this->getErrorHandler(), $this->response, $exception);
   }
 
   /**
@@ -170,26 +169,22 @@ class App implements \ArrayAccess, ConfigHive
    * The deafult error handlers tries to do provode an appropriate response for MIME if set. Defaults to HTML.
    * @param $response HttpResponse
    * @param $code HTTP error code.
-   * @param $message HTTP error message.
-   * @param $exception Exception that caused this error if any.
+   * @param $exception Exception that caused this error. There should always be one.
    */
-  public function defaultErrorHandler(\Pee\HttpResponse $response, $code, $message, $exception = null) {
+  public function defaultErrorHandler(\Pee\HttpResponse $response, $e) {
     $this['CLEANONERROR'] && ob_clean();
     $mime = $this->response->getHeader("Content-Type");
     switch($mime) {
       case "application/json":
       case "text/json": {
-        print json_encode(['error' => ['code' => $code, 'message' => $message]]);
+        print json_encode(['error' => ['code' => $e->getCode(), 'message' => $e->getMessage()]]);
         break;
       }
       case "application/phpcli" :
       default: {
         $trace = ((bool)ini_get('display_errors')) ? $exception . "" : "";
         $output = (ini_get('display_errors') === "stderr") ? fopen("php://stderr", "w") : fopen("php://output", "w");
-        $title = "";
-        if($exception && $exception instanceof Exception\HttpEquivalentException) {
-          $title = $exception->getHttpMessage();
-        }
+        $title = ($e instanceof Exception\HttpEquivalentException) ? $e->getHttpMessage() : '';
         fprintf($output, "<!DOCTYPE html>
 <html>
   <head><title>%d %s</title></head>
@@ -197,7 +192,7 @@ class App implements \ArrayAccess, ConfigHive
     <h1>%s</h1>
     <pre>%s</pre>
   </body>
-</html>\n", $code, $title, $message, $trace);
+</html>\n", $e->getCode(), $title, $e->getMessage(), $trace);
         break;
       }
     }
@@ -239,20 +234,21 @@ class App implements \ArrayAccess, ConfigHive
   public function run() {
     $route = $this->router->run($this->request);
     if(!isset($route)) {
-      throw new Exception\HttpEquivalentException("", 404);
+      throw new Exception\Http404Exception();
     }
     $target = $route->getTarget();
     if(!is_callable($target)) {
-      throw new Exception\HttpEquivalentException("Route found but route not callable", 500);
+      throw new Exception\Http500Exception("Route found but route not callable");
     }
     @list($obj, $method) = $target;
     $before = [$obj, 'beforeRoute'];
     $after = [$obj, 'afterRoute'];
     $tokens = $route->getTokens();
+    $retval = null;
     if(is_callable($before)) {
-      call_user_func($before, $this, $tokens);
+      $retval = call_user_func($before, $this, $tokens);
     }
-    $retval = call_user_func($target, $this, $route->getTokens());
+    $retval = call_user_func($target, $this, $route->getTokens(), $retval);
     if(is_callable($after)) {
       call_user_func($after, $this, $tokens, $retval);
     }
