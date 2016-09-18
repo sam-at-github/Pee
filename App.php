@@ -121,11 +121,12 @@ class App implements \ArrayAccess, ConfigHive
 
   /**
    * In built exception handler. Passes off if user defined handler is registered.
+   * Don't try and map PHP exceptions to HTTP. A mapping depends on layer the exception occured at.
    */
   public function exceptionHandler($exception) {
     $code = 500;
     $message = Http::$CODES[500];
-    if($exception instanceof HttpEquivalentException) {
+    if($exception instanceof Exception\HttpEquivalentException) {
       $code = $exception->getCode();
       $message = $exception->getMessage();
     }
@@ -178,21 +179,25 @@ class App implements \ArrayAccess, ConfigHive
     switch($mime) {
       case "application/json":
       case "text/json": {
-        print json_encode(['code' => $code, 'message' => $message]);
+        print json_encode(['error' => ['code' => $code, 'message' => $message]]);
         break;
       }
       case "application/phpcli" :
       default: {
         $trace = ((bool)ini_get('display_errors')) ? $exception . "" : "";
         $output = (ini_get('display_errors') === "stderr") ? fopen("php://stderr", "w") : fopen("php://output", "w");
+        $title = "";
+        if($exception && $exception instanceof Exception\HttpEquivalentException) {
+          $title = $exception->getHttpMessage();
+        }
         fprintf($output, "<!DOCTYPE html>
 <html>
   <head><title>%d %s</title></head>
   <body>
     <h1>%s</h1>
-    <p>%s</p>
+    <pre>%s</pre>
   </body>
-</html>\n", $code, $message, $message, $trace);
+</html>\n", $code, $title, $message, $trace);
         break;
       }
     }
