@@ -7,9 +7,13 @@ namespace Pee;
  */
 class Route extends AbstractRoute
 {
+  /** Callable target of this route. */
   public $target;
+  /** String HTTP verb */
   private $methodMatch;
+  /** Array or null Content-Type match */
   private $acceptMatch;
+  /** Array path part. Never empty */
   private $pathMatch;
   private $tokens = [];
 
@@ -35,7 +39,6 @@ class Route extends AbstractRoute
       throw new InvalidArgumentException("Failed parsing route '$route'. Require a method and path part. Syntax: <method> <path> [<accept>]");
     }
     $this->pathMatch = explode("/", rtrim($this->pathMatch, "/"));
-    //array_shift($this->pathMatch);
     $this->parsePath();
   }
 
@@ -162,6 +165,8 @@ class Route extends AbstractRoute
   }
 
   public function __toString() {
-    return "{$this->methodMatch} " . implode('/', $this->acceptMatch) . " {$this->pathMatch}";
+    $acceptMatch = implode('/', $this->acceptMatch ? $this->acceptMatch : []);
+    $pathMatch = implode('/', $this->pathMatch);
+    return "{$this->methodMatch} $acceptMatch $pathMatch";
   }
 }
