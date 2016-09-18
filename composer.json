@@ -9,6 +9,9 @@
   "autoload": {
     "psr-4": {
       "Pee\\": "."
-    }
+    },
+    "files": [
+      "Exception/HttpEquivalentException.php"
+    ]
   }
 }

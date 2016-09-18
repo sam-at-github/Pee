@@ -151,7 +151,7 @@ class App implements \ArrayAccess, ConfigHive
   }
 
   /**
-   * Set customer error handler. The callback takes the same params as defaultErrorHandler().
+   * Set custom error handler. The callback takes the same params as defaultErrorHandler().
    * @see defaultErrorHandler
    */
   public function setErrorHandler($callback) {
@@ -247,9 +247,9 @@ class App implements \ArrayAccess, ConfigHive
     if(is_callable($before)) {
       call_user_func($before, $this, $tokens);
     }
-    call_user_func($target, $this, $route->getTokens());
+    $retval = call_user_func($target, $this, $route->getTokens());
     if(is_callable($after)) {
-      call_user_func($after, $this, $tokens);
+      call_user_func($after, $this, $tokens, $retval);
     }
   }
 
