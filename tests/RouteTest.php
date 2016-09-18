@@ -76,4 +76,35 @@ class RouteTest extends PHPUnit_Framework_TestCase
     $this->assertEquals($route->accept($request), $match);
   }
 
+  /**
+   * Test invalid routes.
+   * @expectedException InvalidArgumentException
+   */
+  public function testInvalidRouteNoPath() {
+    new \Pee\Route("ANY", "");
+  }
+
+  /**
+   * Test invalid routes.
+   * @expectedException InvalidArgumentException
+   */
+  public function testInvalidRouteBadPath() {
+    new \Pee\Route("ANY */*", "");
+  }
+
+  /**
+   * Test invalid routes.
+   * @expectedException InvalidArgumentException
+   */
+  public function testInvalidRoutePathNeedSlash() {
+    new \Pee\Route("ANY x/x */*", "");
+  }
+
+  /**
+   * Test invalid routes.
+   * @expectedException InvalidArgumentException
+   */
+  public function testInvalidRoutePathNotJustToken() {
+    new \Pee\Route("ANY @x */*", "");
+  }
 }

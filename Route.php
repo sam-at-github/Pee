@@ -36,7 +36,7 @@ class Route extends AbstractRoute
     $this->pathMatch = isset($parts[2]) ? $parts[2] : null;
     $this->acceptMatch = (isset($parts[4]) && isset($parts[5])) ? [$parts[4],$parts[5]] : null;
     if(!(isset($this->methodMatch) && isset($this->pathMatch))) {
-      throw new InvalidArgumentException("Failed parsing route '$route'. Require a method and path part. Syntax: <method> <path> [<accept>]");
+      throw new \InvalidArgumentException("Failed parsing route '$route'. Missing <method> or <path> part. Syntax: <method> <path> [<accept>]. Path must start in '/'");
     }
     $this->pathMatch = explode("/", rtrim($this->pathMatch, "/"));
     $this->parsePath();
@@ -48,17 +48,17 @@ class Route extends AbstractRoute
       if(isset($part[0]) && $part[0] == "@") {
         if(isset($part[1]) && $part[1] == "@") {
           if(strlen($part) == 2) {
-            throw new InvalidArgumentException("Invalid token in path '@'");
+            throw new \InvalidArgumentException("Invalid token in path '@'");
           }
           if($i != (sizeof($this->pathMatch)-1)) {
-            throw new InvalidArgumentException("Invalid token in path. '@@' must come last");
+            throw new \InvalidArgumentException("Invalid token in path. '@@' must come last");
           }
         }
         elseif(strlen($part) == 1) {
-          throw new InvalidArgumentException("Invalid token in path '@@'");
+          throw new \InvalidArgumentException("Invalid token in path '@@'");
         }
         elseif(isset($dups[$part])) {
-          throw new InvalidArgumentException("Duplicate token in path '$part'");
+          throw new \InvalidArgumentException("Duplicate token in path '$part'");
         }
         $dups[] = $part;
       }
