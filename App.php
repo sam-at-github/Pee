@@ -101,6 +101,10 @@ class App implements \ArrayAccess, ConfigHive
       $this->request->setRequestMethod($argv[1]);
       $uriPath = isset($argv[2]) ? ltrim($argv[2], "/") : "";
       $this->request->setRequestUrl("/$uriPath");
+      stream_set_blocking(fopen('php://stdin', 'r'), false);
+      $body = new \http\Message\Body();
+      $body->append(file_get_contents('php://stdin'));
+      $this->request->setBody($body);
       $this->logger->info("CLI mode {$this->request}");
     }
     if(PHP_SAPI != "cli") {
