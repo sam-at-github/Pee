@@ -36,7 +36,9 @@ class App implements \ArrayAccess, ConfigHive
     ob_start();
     $routerClass = $this['ROUTER_CLASS'] ? $this['ROUTER_CLASS'] : static::DEFAULT_ROUTER_CLASS;
     $this->router = new $routerClass();
-    $this->checkSapi();
+    if(!$this['NO_SAPI_CHECK']) {
+      $this->checkSapi();
+    }
   }
 
   /**
@@ -225,10 +227,10 @@ class App implements \ArrayAccess, ConfigHive
    */
   public function mapRoutesTo($controller, $prefix = '') {
     $this->router->addRoute(new Route("GET $prefix/@id", [$controller, "get"]));
-    $this->router->addRoute(new Route("POST $prefix/@id", [$controller, "post"]));
+    $this->router->addRoute(new Route("POST $prefix", [$controller, "post"]));
     $this->router->addRoute(new Route("PUT $prefix/@id", [$controller, "put"]));
     $this->router->addRoute(new Route("DELETE $prefix/@id", [$controller, "delete"]));
-    $this->router->addRoute(new Route("GET $prefix/", [$controller, "find"]));
+    $this->router->addRoute(new Route("GET $prefix", [$controller, "find"]));
   }
 
   /**
