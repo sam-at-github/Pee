@@ -76,8 +76,9 @@ class App implements \ArrayAccess, ConfigHive
   }
 
   /**
-   * Everything we can handle and that is defined as an error, is remapped to an Exception.
-   * @todo add ERRORS config variable and override default.
+   * Remap handle-able errors to exceptions, set a default global exception handler.
+   * We set a global exception hadlers so we can return some sort of coherent HTTP response if it comes to it.
+   * However, users may 1. override the default, 2. provide an on onException() method in route targets.
    */
   private function initErrors() {
     $errors = (E_ALL) & ~(E_STRICT|E_NOTICE|E_USER_NOTICE);
@@ -153,7 +154,7 @@ class App implements \ArrayAccess, ConfigHive
       $code = $exception->getCode();
     }
     $this->response->setResponseCode($code);
-    call_user_func($this->getErrorHandler(), $this->response, $exception);
+    call_user_func($this->getErrorHandler(), $this, $exception);
   }
 
   /**
@@ -177,7 +178,7 @@ class App implements \ArrayAccess, ConfigHive
    * @param $code HTTP error code.
    * @param $exception Exception that caused this error. There should always be one.
    */
-  public function defaultErrorHandler(\Pee\HttpResponse $response, $e) {
+  public function defaultErrorHandler(\Pee\App $app, $e) {
     $this['CLEANONERROR'] && ob_clean();
     $mime = $this->response->getHeader("Content-Type");
     switch($mime) {
@@ -186,7 +187,7 @@ class App implements \ArrayAccess, ConfigHive
         print json_encode(['error' => ['code' => $e->getCode(), 'message' => $e->getMessage()]]);
         break;
       }
-      case "application/phpcli" :
+      case "application/phpcli":
       default: {
         $trace = ((bool)ini_get('display_errors')) ? $exception . "" : "";
         $output = (ini_get('display_errors') === "stderr") ? fopen("php://stderr", "w") : fopen("php://output", "w");
@@ -235,28 +236,42 @@ class App implements \ArrayAccess, ConfigHive
 
   /**
    * App takes care of routing. Had need for this basic wrapping over Router->run() so may as well do it here.
-   * Will call before|afterRoute() if target a class and these exist - like Fatfree.
+   * Call target->before|afterRoute() if exist - like Fatfree.
+   * Call target->onException() on any exception in the route target. This is a convenience so the client
+   * can define exception handling boiler plate once not in every end point.
+   * So user can call App::run() after an exception (if they really want) catch all exceptions here
+   * to avoid them bubbling to global and becoming terminal.
    */
   public function run() {
     $route = $this->router->run($this->request);
     if(!isset($route)) {
-      throw new Exception\Http404Exception();
+      return $this->exceptionHandler(new Exception\Http404Exception());
     }
     $target = $route->getTarget();
     if(!is_callable($target)) {
-      throw new Exception\Http500Exception("Route found but route not callable");
+      return $this->exceptionHandler(new Exception\Http500Exception("Route found but route not callable"));
     }
     @list($obj, $method) = $target;
     $before = [$obj, 'beforeRoute'];
     $after = [$obj, 'afterRoute'];
     $tokens = $route->getTokens();
     $retval = null;
-    if(is_callable($before)) {
-      $retval = call_user_func($before, $this, $tokens);
+    try {
+      if(is_callable($before)) {
+        $retval = call_user_func($before, $this, $tokens);
+      }
+      $retval = call_user_func($target, $this, $route->getTokens(), $retval);
+      if(is_callable($after)) {
+        call_user_func($after, $this, $tokens, $retval);
+      }
     }
-    $retval = call_user_func($target, $this, $route->getTokens(), $retval);
-    if(is_callable($after)) {
-      call_user_func($after, $this, $tokens, $retval);
+    catch(\Exception $e) {
+      if(is_callable([$obj, 'onException'])) {
+        call_user_func([$obj, 'onException'], $this, $e);
+      }
+      else {
+        $this->exceptionHandler($e);
+      }
     }
   }
 
