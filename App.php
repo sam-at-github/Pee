@@ -36,9 +36,6 @@ class App implements \ArrayAccess, ConfigHive
     ob_start();
     $routerClass = $this['ROUTER_CLASS'] ? $this['ROUTER_CLASS'] : static::DEFAULT_ROUTER_CLASS;
     $this->router = new $routerClass();
-    if(!$this['NO_SAPI_CHECK']) {
-      $this->checkSapi();
-    }
   }
 
   /**
@@ -243,6 +240,9 @@ class App implements \ArrayAccess, ConfigHive
    * to avoid them bubbling to global and becoming terminal.
    */
   public function run() {
+    if(!$this['NO_SAPI_CHECK']) {
+      $this->checkSapi();
+    }
     $route = $this->router->run($this->request);
     if(!isset($route)) {
       return $this->exceptionHandler(new Exception\Http404Exception());
