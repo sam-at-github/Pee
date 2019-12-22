@@ -1,6 +1,7 @@
 <?php
 
 namespace Pee;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Simple wrapper on a nested storage structure.
@@ -156,7 +157,7 @@ class Hive implements \ArrayAccess, ConfigHive
   }
 
   private function loadYaml($file) {
-    return yaml_parse_file($file);
+    return Yaml::parse(file_get_contents($file));
   }
 
   private function syncJson($file) {
@@ -164,7 +165,7 @@ class Hive implements \ArrayAccess, ConfigHive
   }
 
   private function syncYaml($file) {
-    yaml_emit_file($file, $this->data);
+    file_put_contents($file, Yaml::dump($this->data));
   }
 
   private function getExt($file) {

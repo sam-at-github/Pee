@@ -4,7 +4,8 @@
   "prefer-source": true,
   "require":
   {
-    "psr/log": "1.0.*"
+    "psr/log": "1.0.*",
+    "symfony/yaml": "^5.1@dev"
   },
   "autoload": {
     "psr-4": {
